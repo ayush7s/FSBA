@@ -13,7 +13,7 @@ instance/
 # ---------------- Uploads & Runtime Data ----------------
 uploads/
 static/faculty/
-static/images/
+
 receipts/
 
 # ---------------- Admin / One-time scripts ----------------
