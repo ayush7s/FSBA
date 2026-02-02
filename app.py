@@ -123,14 +123,22 @@ def login():
 def logout():
     session.clear()
     return redirect(url_for("home"))
-
-# ---------------- HOME ----------------
+#---------------home---------------------
 @app.route("/health")
 def health():
     return "ok", 200
 
+
 @app.route("/")
 def home():
+    # 🚑 CRITICAL: skip DB queries on Render startup/health scan
+    if os.environ.get("RENDER") == "true":
+        return render_template(
+            "index.html",
+            notices=[],
+            announcements=[]
+        )
+
     try:
         notices = Notice.query.order_by(
             Notice.created_at.desc()
@@ -140,8 +148,7 @@ def home():
             Announcement.created_at.desc()
         ).limit(1).all()
 
-    except Exception as e:
-        # Fallback if DB is slow/unreachable
+    except Exception:
         notices = []
         announcements = []
 
@@ -150,8 +157,6 @@ def home():
         notices=notices,
         announcements=announcements
     )
-
-
 
 # ---------------- CONTACT ----------------
 @app.route("/contact")
