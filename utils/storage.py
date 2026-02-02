@@ -1,4 +1,7 @@
-from utils.supabase_client import supabase
+from utils.supabase_client import get_supabase
+
+supabase = get_supabase()
+
 
 
 def upload_file(bucket: str, path: str, file_obj):
