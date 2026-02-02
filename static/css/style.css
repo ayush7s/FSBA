@@ -61,7 +61,7 @@ a {
 }
 
 .logo-text p {
-    font-size: 12px;
+    font-size: 16px;
     opacity: 0.85;
 }
 
@@ -137,7 +137,7 @@ a {
 }
 
 .nav-user-pill {
-    font-size: 12px;
+    font-size: 15px;
     padding: 4px 10px;
     border-radius: 999px;
     background: rgba(232, 245, 233, 0.15);
@@ -245,14 +245,57 @@ a {
 
 /* ================= HERO ================= */
 .hero {
+    position: relative;              /* REQUIRED */
     padding: 56px 24px;
     border-radius: 24px;
-    background: radial-gradient(circle at top left, #e8f5e9 0, #ffffff 45%, #e8f5e9 100%);
+    overflow: hidden;
+
     display: grid;
     grid-template-columns: 3fr 2fr;
     gap: 32px;
     align-items: center;
-    margin-bottom: 32px;
+
+    background: #ffffff;             /* clean base */
+}
+
+/* text stays above overlay */
+.hero-content {
+    position: relative;
+    z-index: 2;
+    background: rgba(0, 0, 0, 0.35);   /* 🔑 contrast layer */
+    padding: 28px 36px;
+    border-radius: 16px;
+
+    backdrop-filter: blur(4px);        /* modern, optional */
+}
+
+/* opacity layer */
+.hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+
+    background-image: url("/static/images/hh.jpeg");
+    background-size: cover;
+    background-position: center;
+
+    opacity: 0.35;                   /* 🔑 watermark strength */
+    pointer-events: none;            /* buttons clickable */
+    z-index: 0;
+}
+
+
+.hero-content h1 {
+    color: #ffffff;
+    font-weight: 800;
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.55);
+               
+}
+
+.hero-content p {
+    color: #f8fafc;
+    font-weight: 500;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
 }
 
 .hero-split {
@@ -277,8 +320,8 @@ a {
 }
 
 .hero-copy p {
-    font-size: 16px;
-    color: #4b5563;
+    font-size: 22px;
+    color: #01060c;
 }
 
 .hero-actions {

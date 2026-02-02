@@ -2,12 +2,12 @@
 import os
 from dotenv import load_dotenv
 load_dotenv()   # must be FIRST
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
 
 
 from flask import (
     Flask, render_template, request,
-    redirect, url_for, send_from_directory,
+    redirect, url_for, 
     session, flash
 )
 
@@ -17,19 +17,19 @@ from models import db
 # ---------------- APP INIT ----------------
 app = Flask(__name__)
 app.config.from_object(Config)
+os.makedirs(app.config["QR_FOLDER"], exist_ok=True)
+
 
 db.init_app(app)
 
-<<<<<<< HEAD
-with app.app_context():
-    db.create_all()
-=======
->>>>>>> 4a6dede (Fix all code changes)
+
+
 
 from functools import wraps
 from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash, generate_password_hash
+from utils.storage import delete_file
 
 from utils.qr_generator import generate_upi_qr
 from utils.receipt import generate_receipt
@@ -42,28 +42,27 @@ from models.announcement import Announcement
 from models.paid_material import PaidMaterial
 from models.payment import Payment
 from models.faculty import Faculty
+from utils.storage import upload_file
+from utils.storage import get_public_url
+from utils.storage import get_signed_url
+
+from tempfile import NamedTemporaryFile
+
 
 # ---------------- APP INIT ----------------
 # ---------------- ADMIN BOOTSTRAP (LOCAL + RENDER SAFE) ----------------
 
 def bootstrap_admin():
-    """
-    Creates tables and admin user safely.
-    Works on LOCAL and RENDER.
-    """
-
     admin_email = os.environ.get("ADMIN_EMAIL")
     admin_password = os.environ.get("ADMIN_PASSWORD")
 
     if not admin_email or not admin_password:
-        print("⚠️ Admin env vars not found. Skipping admin bootstrap.")
         return
 
     with app.app_context():
         db.create_all()
 
         admin = User.query.filter_by(email=admin_email).first()
-
         if not admin:
             admin = User(
                 name="Administrator",
@@ -73,12 +72,6 @@ def bootstrap_admin():
             )
             db.session.add(admin)
             db.session.commit()
-            print("✅ Admin created")
-        else:
-            # keep password synced with env
-            admin.password = generate_password_hash(admin_password)
-            db.session.commit()
-            print("ℹ️ Admin already exists (password synced)")
 
 
 # ✅ run once at startup
@@ -95,36 +88,9 @@ bootstrap_admin()
 # ---------------- CREATE TABLES + ADMIN ----------------
 
 # ---------------- FILE UPLOAD CONFIG ----------------
-NOTICE_FOLDER = os.path.join(BASE_DIR, "uploads", "notices")
-STUDY_MATERIAL_FOLDER = os.path.join(BASE_DIR, "uploads", "study_materials")
-ANNOUNCEMENT_FOLDER = os.path.join(BASE_DIR, "uploads", "announcements")
-PAID_MATERIAL_FOLDER = os.path.join(BASE_DIR, "uploads", "paid_materials")
-RECEIPT_FOLDER = os.path.join(BASE_DIR, "uploads", "receipts")
-QR_FOLDER = os.path.join(BASE_DIR, "uploads", "qr_codes")
-FACULTY_FOLDER = os.path.join(BASE_DIR, "static", "faculty")
 
 
-app.config["FACULTY_FOLDER"] = FACULTY_FOLDER
 
-for folder in [
-    NOTICE_FOLDER,
-    STUDY_MATERIAL_FOLDER,
-    ANNOUNCEMENT_FOLDER,
-    PAID_MATERIAL_FOLDER,
-    RECEIPT_FOLDER,
-    QR_FOLDER,
-    FACULTY_FOLDER 
-]:
-    os.makedirs(folder, exist_ok=True)
-app.config["QR_FOLDER"] = QR_FOLDER
-
-app.config.update({
-    "NOTICE_FOLDER": NOTICE_FOLDER,
-    "STUDY_MATERIAL_FOLDER": STUDY_MATERIAL_FOLDER,
-    "ANNOUNCEMENT_FOLDER": ANNOUNCEMENT_FOLDER,
-    "PAID_MATERIAL_FOLDER": PAID_MATERIAL_FOLDER,
-    "RECEIPT_FOLDER": RECEIPT_FOLDER
-})
 
 # ---------------- ADMIN DECORATOR ----------------
 def admin_required(f):
@@ -214,17 +180,18 @@ def notices():
             return redirect(url_for("login"))
 
         pdf = request.files.get("pdf")
-        filename = None
+        path = None
 
         if pdf and pdf.filename:
             filename = secure_filename(pdf.filename)
-            pdf.save(os.path.join(app.config["NOTICE_FOLDER"], filename))
+            path = f"notices/{filename}"
+            upload_file("notices", path, pdf)
 
         db.session.add(
             Notice(
                 title=request.form["title"],
                 content=request.form["content"],
-                pdf_file=filename
+                pdf_file=path
             )
         )
         db.session.commit()
@@ -234,32 +201,29 @@ def notices():
         "notices.html",
         notices=Notice.query.order_by(Notice.created_at.desc()).all()
     )
+
+
 # ---------------- DOWNLOAD NOTICE PDF ----------------
-@app.route("/notices/pdf/<filename>")
-def download_notice_pdf(filename):
-    return send_from_directory(
-        app.config["NOTICE_FOLDER"],
-        filename,
-        as_attachment=True
-    )
+@app.route("/notices/pdf/<path:filepath>")
+def download_notice_pdf(filepath):
+    notice = Notice.query.filter_by(pdf_file=filepath).first_or_404()
+    return redirect(get_public_url("notices", notice.pdf_file))
+
+
 # ---------------- DELETE NOTICE ----------------
 @app.route("/admin/notices/delete/<int:id>")
 @admin_required
 def delete_notice(id):
     notice = Notice.query.get_or_404(id)
 
-    # delete PDF file if exists
     if notice.pdf_file:
-        pdf_path = os.path.join(app.config["NOTICE_FOLDER"], notice.pdf_file)
-        if os.path.exists(pdf_path):
-            os.remove(pdf_path)
+        delete_file("notices", notice.pdf_file)
 
     db.session.delete(notice)
     db.session.commit()
 
     flash("Notice deleted successfully")
     return redirect(url_for("notices"))
-
 
 # ---------------- ANNOUNCEMENTS ----------------
 @app.route("/announcements", methods=["GET", "POST"])
@@ -269,17 +233,18 @@ def announcements():
             return redirect(url_for("login"))
 
         file = request.files.get("file")
-        filename = None
+        path = None
 
         if file and file.filename:
             filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config["ANNOUNCEMENT_FOLDER"], filename))
+            path = filename
+            upload_file("announcements", path, file)
 
         db.session.add(
             Announcement(
                 title=request.form["title"],
                 content=request.form["content"],
-                file_name=filename
+                file_name=path   # ✅ FIXED
             )
         )
         db.session.commit()
@@ -291,26 +256,30 @@ def announcements():
             Announcement.created_at.desc()
         ).all()
     )
+
+
 # ---------------- DELETE ANNOUNCEMENT ----------------
 @app.route("/admin/announcement/delete/<int:id>")
 @admin_required
 def delete_announcement(id):
     announcement = Announcement.query.get_or_404(id)
 
-    # delete attached file if exists
     if announcement.file_name:
-        file_path = os.path.join(
-            app.config["ANNOUNCEMENT_FOLDER"],
-            announcement.file_name
-        )
-        if os.path.exists(file_path):
-            os.remove(file_path)
+        delete_file("announcements", announcement.file_name)
 
     db.session.delete(announcement)
     db.session.commit()
 
     flash("Announcement deleted successfully")
     return redirect(url_for("announcements"))
+# ---------------- DOWNLOAD ANNOUNCEMENT FILE ----------------
+@app.route("/announcements/file/<path:filepath>")
+def download_announcement_file(filepath):
+    announcement = Announcement.query.filter_by(file_name=filepath).first_or_404()
+    return redirect(
+        get_public_url("announcements", announcement.file_name)
+    )
+
 
 # ---------------- STUDY MATERIALS ----------------
 @app.route("/materials", methods=["GET", "POST"])
@@ -324,14 +293,16 @@ def materials():
             return redirect(url_for("materials"))
 
         filename = secure_filename(file.filename)
-        file.save(os.path.join(app.config["STUDY_MATERIAL_FOLDER"], filename))
+        path = f"{request.form['class_name']}/{filename}"
+
+        upload_file("study-materials", path, file)
 
         db.session.add(
             StudyMaterial(
                 title=request.form["title"],
                 subject=request.form["subject"],
                 class_name=request.form["class_name"],
-                file_name=filename
+                file_name=path   # ✅ FIXED
             )
         )
         db.session.commit()
@@ -343,34 +314,31 @@ def materials():
             StudyMaterial.uploaded_at.desc()
         ).all()
     )
+
+
 # ---------------- DOWNLOAD STUDY MATERIAL ----------------
-@app.route("/study-material/<filename>")
-def download_study_material(filename):
-    return send_from_directory(
-        app.config["STUDY_MATERIAL_FOLDER"],
-        filename,
-        as_attachment=True
+@app.route("/study-material/<path:filepath>")
+def download_study_material(filepath):
+    material = StudyMaterial.query.filter_by(file_name=filepath).first_or_404()
+    return redirect(
+        get_public_url("study-materials", material.file_name)
     )
+
+
 # ---------------- DELETE STUDY MATERIAL ----------------
 @app.route("/admin/material/delete/<int:id>")
 @admin_required
 def delete_material(id):
     material = StudyMaterial.query.get_or_404(id)
 
-    file_path = os.path.join(
-        app.config["STUDY_MATERIAL_FOLDER"],
-        material.file_name
-    )
-
-    if os.path.exists(file_path):
-        os.remove(file_path)
+    if material.file_name:
+        delete_file("study-materials", material.file_name)
 
     db.session.delete(material)
     db.session.commit()
 
     flash("Study material deleted successfully")
     return redirect(url_for("materials"))
-
 
 
 # ---------------- ADMIN PAID MATERIALS ----------------
@@ -384,7 +352,9 @@ def admin_paid_materials():
             return redirect(url_for("admin_paid_materials"))
 
         filename = secure_filename(file.filename)
-        file.save(os.path.join(app.config["PAID_MATERIAL_FOLDER"], filename))
+        path = f"{request.form['class_name']}/{filename}"
+
+        upload_file("paid-materials", path, file)
 
         db.session.add(
             PaidMaterial(
@@ -392,7 +362,7 @@ def admin_paid_materials():
                 class_name=request.form["class_name"],
                 subject=request.form["subject"],
                 price=float(request.form["price"]),
-                file_name=filename
+                file_name=path   # ✅ FIXED
             )
         )
         db.session.commit()
@@ -407,24 +377,22 @@ def admin_paid_materials():
         ).all()
     )
 
+
 # ---------------- DELETE PAID MATERIAL ----------------
 @app.route("/admin/paid-material/delete/<int:id>")
 @admin_required
 def delete_paid_material(id):
     material = PaidMaterial.query.get_or_404(id)
 
-    file_path = os.path.join(
-        app.config["PAID_MATERIAL_FOLDER"],
-        material.file_name
-    )
-    if os.path.exists(file_path):
-        os.remove(file_path)
+    if material.file_name:
+        delete_file("paid-materials", material.file_name)
 
     db.session.delete(material)
     db.session.commit()
 
     flash("Paid material deleted successfully")
     return redirect(url_for("admin_paid_materials"))
+
 #----------------faculty list----------------
 @app.route("/faculty")
 def faculty_public():
@@ -444,6 +412,7 @@ def faculty_public():
         faculty_members=faculty_members
     )
 
+
 @app.route("/admin/faculty", methods=["GET", "POST"])
 @admin_required
 def admin_faculty():
@@ -453,12 +422,14 @@ def admin_faculty():
         photo = request.files["photo"]
 
         filename = secure_filename(photo.filename)
-        photo.save(os.path.join(app.config["FACULTY_FOLDER"], filename))
+        path = f"faculty/{filename}"
+
+        upload_file("faculty", path, photo)
 
         faculty = Faculty(
             name=name,
             designation=designation,
-            image=filename
+            image=path   # ✅ FIXED
         )
         db.session.add(faculty)
         db.session.commit()
@@ -471,15 +442,15 @@ def admin_faculty():
         "admin_faculty.html",
         faculty_members=faculty_members
     )
+
+
 @app.route("/admin/faculty/make-principal/<int:id>")
 @admin_required
 def make_principal(id):
-    # Remove existing principal
     Faculty.query.filter_by(is_principal=True).update(
         {"is_principal": False}
     )
 
-    # Set new principal
     faculty = Faculty.query.get_or_404(id)
     faculty.is_principal = True
 
@@ -488,22 +459,21 @@ def make_principal(id):
 
     return redirect(url_for("admin_faculty"))
 
+
 #-------delete faculty------------------
 @app.route("/admin/faculty/delete/<int:id>")
 @admin_required
 def delete_faculty(id):
     faculty = Faculty.query.get_or_404(id)
 
-    image_path = os.path.join(app.config["FACULTY_FOLDER"], faculty.image)
-    if os.path.exists(image_path):
-        os.remove(image_path)
+    if faculty.image:
+        delete_file("faculty", faculty.image)
 
     db.session.delete(faculty)
     db.session.commit()
 
     flash("Faculty deleted")
     return redirect(url_for("admin_faculty"))
-
 
 # ---------------- PUBLIC PAID MATERIALS ----------------
 @app.route("/paid-materials")
@@ -588,6 +558,7 @@ def payment_page():
     qr_filename = f"upi_qr_{material.id}_{material.price}.png"
     qr_path = os.path.join(app.config["QR_FOLDER"], qr_filename)
 
+# Generate QR only if not already present
     if not os.path.exists(qr_path):
         generate_upi_qr(upi_link, qr_path)
 
@@ -597,10 +568,11 @@ def payment_page():
         amount=material.price,
         email=email,
         upi_id=upi_id,
-        upi_name=upi_name,
+    upi_name=upi_name,
         upi_link=upi_link,
-        qr_image=qr_filename   # ✅ now defined
-    )
+        qr_image=qr_filename
+     )
+    
 
 # ---------------- SUBMIT PAYMENT ----------------
 @app.route("/submit-payment", methods=["POST"])
@@ -608,6 +580,7 @@ def submit_payment():
     email = request.form.get("email")
     material_id = request.form.get("material_id")
     utr = request.form.get("utr")
+    
 
     # -------- BASIC VALIDATION --------
     if not email or not material_id or not utr:
@@ -647,46 +620,51 @@ def submit_payment():
     db.session.commit()
 
     # -------- RECEIPT --------
-    receipt_path = os.path.join(
-        app.config["RECEIPT_FOLDER"],
-        f"receipt_{payment.id}.pdf"
-    )
-
-    generate_receipt(
-        receipt_path=receipt_path,
-        school_name=os.environ.get("SCHOOL_NAME", "School"),
-        email=email,
-        material=material,
-        amount=material.price,
-        utr=utr.strip()
-    )
-
-    # -------- EMAIL --------
+  
     download_link = url_for(
-        "download_paid_material",
-        token=payment.download_token,
-        _external=True
-    )
+    "download_paid_material",
+    token=payment.download_token,
+    _external=True
+)
 
+    with NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+        generate_receipt(
+           receipt_path=tmp.name,
+           school_name=os.environ.get("SCHOOL_NAME", "School"),
+           email=email,
+           material=material,
+           amount=material.price,
+           utr=utr.strip()
+        )
+        receipt_tmp_path = tmp.name
+
+    # upload to Supabase
+    receipt_supabase_path = f"receipts/receipt_{payment.id}.pdf"
+    with open(receipt_tmp_path, "rb") as f:
+       receipt_supabase_path = f"receipt_{payment.id}.pdf"
+       upload_file("receipts", receipt_supabase_path, f)
+
+    # send email
     send_email(
         to_email=email,
         subject="Your Study Material & Receipt",
         body=f"""
-Thank you for your payment.
+    Thank you for your payment.
 
-Download your study material here:
-{download_link}
+    Download your study material here:
+    {download_link}
 
-This link is valid for 24 hours.
-""",
-        attachments=[receipt_path]
+    This link is valid for 24 hours.
+    """,
+        attachments=[receipt_tmp_path]
     )
 
+    os.remove(receipt_tmp_path)
     flash("Payment successful! PDF and receipt sent to your Gmail.")
     return redirect(url_for("home"))
 
-
 # ---------------- DOWNLOAD PAID MATERIAL ----------------
+
 @app.route("/download/<token>")
 def download_paid_material(token):
     payment = Payment.query.filter_by(download_token=token).first_or_404()
@@ -695,20 +673,23 @@ def download_paid_material(token):
         flash("Download link expired.")
         return redirect(url_for("home"))
 
-    material = PaidMaterial.query.get(payment.material_id)
+    material = PaidMaterial.query.get_or_404(payment.material_id)
 
-    return send_from_directory(
-        app.config["PAID_MATERIAL_FOLDER"],
-        material.file_name,
-        as_attachment=True
+    signed_url = get_signed_url(
+        bucket="paid-materials",
+         path=material.file_name,
+        expires_in=60 * 60  # 1 hour
     )
+
+    return redirect(signed_url)
+
 # ---------------- SERVE UPI QR IMAGE ----------------
 @app.route("/upi-qr/<filename>")
 def download_qr(filename):
-    return send_from_directory(
-        app.config["QR_FOLDER"],
-        filename
+    return redirect(
+        get_public_url("qr-codes", filename)
     )
+
 
 
 # ---------------- RUN ----------------

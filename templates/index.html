@@ -39,7 +39,7 @@
         {% for f in faculty_members %}
         <article class="faculty-card" data-aos="zoom-in" data-aos-delay="{{ loop.index0 * 60 }}">
             <div class="faculty-avatar">
-                <img src="{{ url_for('static', filename='faculty/' + f.image) }}" alt="{{ f.name }}">
+                <img src="{{ url_for('static', filepath='faculty/' + f.image) }}" alt="{{ f.name }}">
             </div>
             <div class="faculty-body">
                 <h3>{{ f.name }}</h3>

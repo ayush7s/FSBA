@@ -32,7 +32,7 @@
 
         {% if notice.pdf_file %}
             <p>
-                <a href="{{ url_for('download_notice_pdf', filename=notice.pdf_file) }}">
+                <a href="{{ url_for('download_notice_pdf', filepath=notice.pdf_file) }}">
                     📄 Download PDF
                 </a>
             </p>

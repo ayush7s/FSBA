@@ -17,3 +17,6 @@ class Config:
         )
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    # ✅ ADD THIS INSIDE THE CLASS
+    QR_FOLDER = os.path.join(BASE_DIR, "static", "qr")

@@ -28,7 +28,7 @@
 
             {% if ann.file_name %}
                 <!-- 🔽 FIXED: correct download route name -->
-                <a href="{{ url_for('download_announcement_file', filename=ann.file_name) }}">
+                <a href="{{ url_for('download_announcement_file', filepath=ann.file_name) }}">
                     📄 Download Attachment
                 </a>
                 <br>
