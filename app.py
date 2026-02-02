@@ -131,14 +131,26 @@ def health():
 
 @app.route("/")
 def home():
-    return render_template(
-        "index.html",
-        notices=Notice.query.order_by(Notice.created_at.desc()).limit(5).all(),
-        announcements=Announcement.query.order_by(
+    try:
+        notices = Notice.query.order_by(
+            Notice.created_at.desc()
+        ).limit(5).all()
+
+        announcements = Announcement.query.order_by(
             Announcement.created_at.desc()
         ).limit(1).all()
-        
+
+    except Exception as e:
+        # Fallback if DB is slow/unreachable
+        notices = []
+        announcements = []
+
+    return render_template(
+        "index.html",
+        notices=notices,
+        announcements=announcements
     )
+
 
 
 # ---------------- CONTACT ----------------
