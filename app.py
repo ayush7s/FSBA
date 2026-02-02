@@ -53,6 +53,10 @@ from tempfile import NamedTemporaryFile
 # ---------------- ADMIN BOOTSTRAP (LOCAL + RENDER SAFE) ----------------
 
 def bootstrap_admin():
+    # ❌ NEVER auto-run on Render / Production
+    if os.environ.get("RENDER") == "true":
+        return
+
     admin_email = os.environ.get("ADMIN_EMAIL")
     admin_password = os.environ.get("ADMIN_PASSWORD")
 
@@ -73,9 +77,6 @@ def bootstrap_admin():
             db.session.add(admin)
             db.session.commit()
 
-
-# ✅ run once at startup
-bootstrap_admin()
 
 
 
@@ -694,5 +695,7 @@ def download_qr(filename):
 
 # ---------------- RUN ----------------
 if __name__ == "__main__":
+    bootstrap_admin()
     app.run(debug=os.environ.get("FLASK_DEBUG") == "1")
+
 
