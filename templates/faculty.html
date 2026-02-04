@@ -11,9 +11,8 @@
 
         <!-- Principal image -->
         <div class="principal-image">
-            <img
-                src="{{ url_for('static', filename='faculty/' + principal.image) }}"
-                alt="{{ principal.name }}">
+            <img src="{{ principal.image }}" alt="{{ principal.name }}">
+
         </div>
 
         <!-- Principal details -->
@@ -45,9 +44,8 @@
 
             <!-- Faculty image -->
             <div class="faculty-avatar">
-                <img
-                    src="{{ url_for('static', filename='faculty/' + f.image) }}"
-                    alt="{{ f.name }}">
+               <img src="{{ f.image }}" alt="{{ f.name }}">
+
             </div>
 
             <!-- Faculty name + designation -->
