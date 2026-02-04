@@ -14,6 +14,7 @@ from flask_wtf import CSRFProtect
 
 from config import Config
 from models import db
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
 
 # ---------------- APP INIT ----------------
 app = Flask(__name__)
@@ -512,6 +513,8 @@ def admin_faculty():
         path = f"faculty/{filename}"
 
         upload_file("faculty", path, photo)
+        image_url = f"{SUPABASE_URL}/storage/v1/object/public/faculty/{path}"
+
 
         faculty = Faculty(
             name=name,
