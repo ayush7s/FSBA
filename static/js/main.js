@@ -75,6 +75,26 @@ document.addEventListener("keydown", function (e) {
     if (nav) nav.classList.remove("is-open");
 });
 
+/* ================= FLASH POPUP ================= */
+function dismissFlash() {
+    const flash = document.getElementById("flashPopup");
+    if (!flash) return;
+    flash.classList.add("is-hidden");
+    setTimeout(function () {
+        if (flash && flash.parentNode) {
+            flash.parentNode.removeChild(flash);
+        }
+    }, 250);
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const flash = document.getElementById("flashPopup");
+    if (!flash) return;
+    setTimeout(function () {
+        dismissFlash();
+    }, 5000);
+});
+
 /* ================= MODALS ================= */
 function openModal(id) {
     const el = document.getElementById(id);

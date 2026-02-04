@@ -7,9 +7,10 @@ load_dotenv()   # must be FIRST
 
 from flask import (
     Flask, render_template, request,
-    redirect, url_for, 
+    redirect, url_for,
     session, flash
 )
+from flask_wtf import CSRFProtect
 
 from config import Config
 from models import db
@@ -18,6 +19,8 @@ from models import db
 app = Flask(__name__)
 app.config.from_object(Config)
 os.makedirs(app.config["QR_FOLDER"], exist_ok=True)
+
+csrf = CSRFProtect(app)
 
 
 db.init_app(app)
@@ -28,6 +31,7 @@ db.init_app(app)
 from functools import wraps
 from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
+from werkzeug.exceptions import RequestEntityTooLarge
 from werkzeug.security import check_password_hash, generate_password_hash
 from utils.storage import delete_file
 
@@ -101,6 +105,42 @@ def admin_required(f):
             return redirect(url_for("login"))
         return f(*args, **kwargs)
     return decorated_function
+
+
+def _file_ext(filename: str) -> str:
+    if not filename or "." not in filename:
+        return ""
+    return filename.rsplit(".", 1)[-1].lower()
+
+
+def _file_size_bytes(file_obj) -> int:
+    stream = getattr(file_obj, "stream", file_obj)
+    pos = stream.tell()
+    stream.seek(0, os.SEEK_END)
+    size = stream.tell()
+    stream.seek(pos)
+    return size
+
+
+def validate_upload(file_obj, allowed_exts: set[str], max_mb: int) -> tuple[bool, str | None]:
+    if not file_obj or not file_obj.filename:
+        return False, "File is required."
+
+    ext = _file_ext(file_obj.filename)
+    if ext not in allowed_exts:
+        return False, f"Invalid file type. Allowed: {', '.join(sorted(allowed_exts))}."
+
+    size = _file_size_bytes(file_obj)
+    if size > max_mb * 1024 * 1024:
+        return False, f"File too large. Max {max_mb}MB."
+
+    return True, None
+
+
+@app.errorhandler(RequestEntityTooLarge)
+def handle_large_file(_error):
+    flash("File too large. Please upload a smaller file.")
+    return redirect(request.referrer or url_for("home"))
 
 # ---------------- AUTH ----------------
 @app.route("/login", methods=["GET", "POST"])
@@ -205,6 +245,11 @@ def notices():
         path = None
 
         if pdf and pdf.filename:
+            ok, error = validate_upload(pdf, {"pdf"}, 10)
+            if not ok:
+                flash(error)
+                return redirect(url_for("notices"))
+
             filename = secure_filename(pdf.filename)
             path = f"notices/{filename}"
             upload_file("notices", path, pdf)
@@ -233,7 +278,7 @@ def download_notice_pdf(filepath):
 
 
 # ---------------- DELETE NOTICE ----------------
-@app.route("/admin/notices/delete/<int:id>")
+@app.route("/admin/notices/delete/<int:id>", methods=["POST"])
 @admin_required
 def delete_notice(id):
     notice = Notice.query.get_or_404(id)
@@ -258,6 +303,11 @@ def announcements():
         path = None
 
         if file and file.filename:
+            ok, error = validate_upload(file, {"pdf", "jpg", "jpeg", "png"}, 10)
+            if not ok:
+                flash(error)
+                return redirect(url_for("announcements"))
+
             filename = secure_filename(file.filename)
             path = filename
             upload_file("announcements", path, file)
@@ -281,7 +331,7 @@ def announcements():
 
 
 # ---------------- DELETE ANNOUNCEMENT ----------------
-@app.route("/admin/announcement/delete/<int:id>")
+@app.route("/admin/announcement/delete/<int:id>", methods=["POST"])
 @admin_required
 def delete_announcement(id):
     announcement = Announcement.query.get_or_404(id)
@@ -313,6 +363,16 @@ def materials():
         file = request.files.get("file")
         if not file or not file.filename:
             return redirect(url_for("materials"))
+
+        ok, error = validate_upload(file, {"pdf"}, 20)
+        if not ok:
+            flash(error)
+            return redirect(url_for("materials"))
+
+        ok, error = validate_upload(file, {"pdf"}, 20)
+        if not ok:
+            flash(error)
+            return redirect(url_for("admin_paid_materials"))
 
         filename = secure_filename(file.filename)
         path = f"{request.form['class_name']}/{filename}"
@@ -348,7 +408,7 @@ def download_study_material(filepath):
 
 
 # ---------------- DELETE STUDY MATERIAL ----------------
-@app.route("/admin/material/delete/<int:id>")
+@app.route("/admin/material/delete/<int:id>", methods=["POST"])
 @admin_required
 def delete_material(id):
     material = StudyMaterial.query.get_or_404(id)
@@ -401,7 +461,7 @@ def admin_paid_materials():
 
 
 # ---------------- DELETE PAID MATERIAL ----------------
-@app.route("/admin/paid-material/delete/<int:id>")
+@app.route("/admin/paid-material/delete/<int:id>", methods=["POST"])
 @admin_required
 def delete_paid_material(id):
     material = PaidMaterial.query.get_or_404(id)
@@ -443,6 +503,11 @@ def admin_faculty():
         designation = request.form["designation"]
         photo = request.files["photo"]
 
+        ok, error = validate_upload(photo, {"jpg", "jpeg", "png"}, 5)
+        if not ok:
+            flash(error)
+            return redirect(url_for("admin_faculty"))
+
         filename = secure_filename(photo.filename)
         path = f"faculty/{filename}"
 
@@ -466,7 +531,7 @@ def admin_faculty():
     )
 
 
-@app.route("/admin/faculty/make-principal/<int:id>")
+@app.route("/admin/faculty/make-principal/<int:id>", methods=["POST"])
 @admin_required
 def make_principal(id):
     Faculty.query.filter_by(is_principal=True).update(
@@ -483,7 +548,7 @@ def make_principal(id):
 
 
 #-------delete faculty------------------
-@app.route("/admin/faculty/delete/<int:id>")
+@app.route("/admin/faculty/delete/<int:id>", methods=["POST"])
 @admin_required
 def delete_faculty(id):
     faculty = Faculty.query.get_or_404(id)
@@ -526,6 +591,7 @@ def paid_materials():
 
 # ---------------- START PAYMENT ----------------
 @app.route("/start-payment", methods=["POST"])
+@csrf.exempt
 def start_payment():
     material_id = request.form.get("material_id")
     email = request.form.get("email")
@@ -598,6 +664,7 @@ def payment_page():
 
 # ---------------- SUBMIT PAYMENT ----------------
 @app.route("/submit-payment", methods=["POST"])
+@csrf.exempt
 def submit_payment():
     email = request.form.get("email")
     material_id = request.form.get("material_id")
@@ -613,12 +680,6 @@ def submit_payment():
         flash("Invalid UTR / Transaction ID.")
         return redirect(url_for("paid_materials"))
 
-    # -------- 🚨 BLOCK REUSED UTR (GLOBAL) --------
-    existing_utr = Payment.query.filter_by(utr=utr.strip()).first()
-    if existing_utr:
-        flash("This UTR / Transaction ID has already been used.")
-        return redirect(url_for("paid_materials"))
-
     material = PaidMaterial.query.get_or_404(material_id)
 
     # -------- RATE LIMIT (24 HOURS / SAME MATERIAL) --------
@@ -628,7 +689,58 @@ def submit_payment():
     ).order_by(Payment.created_at.desc()).first()
 
     if last_payment and datetime.utcnow() - last_payment.created_at < timedelta(hours=24):
-        flash("You already purchased this material in the last 24 hours.")
+        # Resend email + receipt instead of blocking silently
+        download_link = url_for(
+            "download_paid_material",
+            token=last_payment.download_token,
+            _external=True
+        )
+
+        receipt_tmp_path = None
+        with NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+            generate_receipt(
+                receipt_path=tmp.name,
+                school_name=os.environ.get("SCHOOL_NAME", "School"),
+                email=email,
+                material=material,
+                amount=last_payment.amount,
+                utr=last_payment.utr
+            )
+            receipt_tmp_path = tmp.name
+
+        email_sent = False
+        try:
+            send_email(
+                to_email=email,
+                subject="Your Study Material & Receipt",
+                body=f"""
+            Thank you for your payment.
+
+            Download your study material here:
+            {download_link}
+
+            This link is valid for 24 hours.
+            """,
+                attachments=[receipt_tmp_path]
+            )
+            email_sent = True
+        except Exception as exc:
+            app.logger.exception("Email resend failed: %s", exc)
+        finally:
+            if receipt_tmp_path and os.path.exists(receipt_tmp_path):
+                os.remove(receipt_tmp_path)
+
+        if email_sent:
+            flash("You already purchased this material. We resent your PDF and receipt.", "success")
+        else:
+            flash("You already purchased this material, but email failed to send.", "error")
+
+        return redirect(url_for("home"))
+
+    # -------- 🚨 BLOCK REUSED UTR (GLOBAL) --------
+    existing_utr = Payment.query.filter_by(utr=utr.strip()).first()
+    if existing_utr:
+        flash("This UTR / Transaction ID has already been used.")
         return redirect(url_for("paid_materials"))
 
     # -------- SAVE PAYMENT --------
@@ -667,22 +779,33 @@ def submit_payment():
        upload_file("receipts", receipt_supabase_path, f)
 
     # send email
-    send_email(
-        to_email=email,
-        subject="Your Study Material & Receipt",
-        body=f"""
-    Thank you for your payment.
+    email_sent = False
+    try:
+        send_email(
+            to_email=email,
+            subject="Your Study Material & Receipt",
+            body=f"""
+        Thank you for your payment.
 
-    Download your study material here:
-    {download_link}
+        Download your study material here:
+        {download_link}
 
-    This link is valid for 24 hours.
-    """,
-        attachments=[receipt_tmp_path]
-    )
+        This link is valid for 24 hours.
+        """,
+            attachments=[receipt_tmp_path]
+        )
+        email_sent = True
+    except Exception as exc:
+        app.logger.exception("Email send failed: %s", exc)
+    finally:
+        if receipt_tmp_path and os.path.exists(receipt_tmp_path):
+            os.remove(receipt_tmp_path)
 
-    os.remove(receipt_tmp_path)
-    flash("Payment successful! PDF and receipt sent to your Gmail.")
+    if email_sent:
+        flash("Payment successful! PDF and receipt sent to your email.", "success")
+    else:
+        flash("Payment saved, but email failed to send. Please contact support.", "error")
+
     return redirect(url_for("home"))
 
 # ---------------- DOWNLOAD PAID MATERIAL ----------------

@@ -60,6 +60,18 @@
     </div>
 </header>
 
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-popup" id="flashPopup" role="status" aria-live="polite">
+        <button class="flash-close" type="button" onclick="dismissFlash()" aria-label="Close notification">×</button>
+        {% for category, message in messages %}
+            {% set flash_category = 'info' if category == 'message' else (category or 'info') %}
+            <div class="flash-item flash-{{ flash_category }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+{% endwith %}
+
 <!-- ================= MAIN CONTENT ================= -->
 <main class="page-main">
     <div class="page-container page-fade">

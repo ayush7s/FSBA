@@ -71,10 +71,12 @@ Paid Study Materials
                     </div>
                 </div>
 
-                <form method="POST"
-                      action="{{ url_for('start_payment') }}"
-                      onsubmit="copyEmail({{ material.id }})"
-                      class="material-cta">
+                    <form method="POST"
+                        action="{{ url_for('start_payment') }}"
+                        onsubmit="copyEmail({{ material.id }})"
+                        class="material-cta">
+
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                     <input type="hidden" name="material_id" value="{{ material.id }}">
                     <input type="hidden" name="email" id="hidden_email_{{ material.id }}">

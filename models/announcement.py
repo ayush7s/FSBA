@@ -1,5 +1,5 @@
 from datetime import datetime
-from models.user import db
+from models import db
 
 class Announcement(db.Model):
     id = db.Column(db.Integer, primary_key=True)

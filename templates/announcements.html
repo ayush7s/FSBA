@@ -9,6 +9,7 @@
 <!-- 🔽 (ALREADY CORRECT) -->
 {% if session.get("role") == "admin" %}
 <form method="POST" enctype="multipart/form-data" style="margin-bottom:20px;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="text" name="title" placeholder="Title" required><br><br>
     <textarea name="content" placeholder="Announcement content" required></textarea><br><br>
     <input type="file" name="file"><br><br>
@@ -41,11 +42,12 @@
             <!-- ================= ADMIN-ONLY DELETE ================= -->
             {% if session.get("role") == "admin" %}
                 <br>
-                <a href="{{ url_for('delete_announcement', id=ann.id) }}"
-                   onclick="return confirm('Delete this announcement?')"
-                   style="color:red;">
-                   Delete
-                </a>
+                <form method="POST" action="{{ url_for('delete_announcement', id=ann.id) }}" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" onclick="return confirm('Delete this announcement?')" style="color:red; background:none; border:none; padding:0; cursor:pointer;">
+                        Delete
+                    </button>
+                </form>
             {% endif %}
             <!-- ================= END ADMIN-ONLY DELETE ================= -->
 

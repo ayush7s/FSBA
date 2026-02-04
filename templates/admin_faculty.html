@@ -32,17 +32,20 @@
             <div class="card-actions">
 
     {% if not f.is_principal %}
-        <a href="{{ url_for('make_principal', id=f.id) }}"
-           class="btn btn-outline btn-xs">
-           Make Principal
-        </a>
+        <form method="POST" action="{{ url_for('make_principal', id=f.id) }}" style="display:inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-outline btn-xs">Make Principal</button>
+        </form>
     {% endif %}
 
-    <a href="{{ url_for('delete_faculty', id=f.id) }}"
-       onclick="return confirm('Delete this faculty?')"
-       class="btn btn-danger btn-xs">
-        Delete
-    </a>
+    <form method="POST" action="{{ url_for('delete_faculty', id=f.id) }}" style="display:inline;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit"
+                onclick="return confirm('Delete this faculty?')"
+                class="btn btn-danger btn-xs">
+            Delete
+        </button>
+    </form>
 
 </div>
 
@@ -59,6 +62,7 @@
             </div>
             <div class="modal-body">
                 <form method="POST" enctype="multipart/form-data" class="form-card">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="form-grid">
                         <div class="form-field">
                             <label>Faculty Name</label>

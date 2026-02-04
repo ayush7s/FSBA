@@ -23,7 +23,7 @@ def upload_file(bucket: str, path: str, file_obj):
             "content-type": getattr(
                 file_obj, "content_type", "application/octet-stream"
             ),
-            "upsert": True  # ✅ prevent 409 Duplicate
+            "x-upsert": "true"  # ✅ prevent 409 Duplicate (must be string)
         }
     )
 

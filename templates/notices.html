@@ -12,6 +12,7 @@
     <div class="notice-card">
         <h3>Add New Notice</h3>
         <form method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="text" name="title" placeholder="Notice Title" required>
             <textarea name="content" placeholder="Notice Content" required></textarea>
             <input type="file" name="pdf" accept=".pdf">
@@ -44,11 +45,12 @@
         <!-- 🔽 ADDED: delete button only for admin -->
         {% if session.get("role") == "admin" %}
             <br>
-            <a href="{{ url_for('delete_notice', id=notice.id) }}"
-               onclick="return confirm('Delete this notice?')"
-               style="color:red;">
-               Delete
-            </a>
+            <form method="POST" action="{{ url_for('delete_notice', id=notice.id) }}" style="display:inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" onclick="return confirm('Delete this notice?')" style="color:red; background:none; border:none; padding:0; cursor:pointer;">
+                    Delete
+                </button>
+            </form>
         {% endif %}
         <!-- ================= END ADMIN-ONLY DELETE ================= -->
 
