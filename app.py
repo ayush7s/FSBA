@@ -519,7 +519,7 @@ def admin_faculty():
         faculty = Faculty(
             name=name,
             designation=designation,
-            image=path   # ✅ FIXED
+            image=image_url   # ✅ FIXED
         )
         db.session.add(faculty)
         db.session.commit()
