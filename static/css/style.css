@@ -1355,62 +1355,33 @@ a {
     overflow-x: hidden;
   }
 }
-/* ================= DESKTOP SITE ON MOBILE FIX ================= */
+/* ================= TRUE DESKTOP NAV ================= */
+@media (min-width: 1024px) {
 
-/* Force mobile layout when screen is physically small */
-@media (max-width: 1024px) {
-
-  /* Prevent horizontal overflow */
-  html, body {
-    overflow-x: hidden !important;
-  }
-
-  /* Header must not exceed screen */
-  .site-header,
-  .header-inner {
-    max-width: 100%;
-    overflow-x: hidden;
-  }
-
-  /* Navbar behaves like mobile even in desktop mode */
+  /* Hide hamburger */
   .nav-toggle {
-    display: inline-flex !important;
+    display: none !important;
   }
 
-  .navbar {
-    width: 100%;
-  }
-
+  /* Force horizontal menu */
   .nav-links {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-
-    background: #0b6e3f;
-    padding: 12px;
-    border-radius: 0 0 16px 16px;
-
-    display: none;
-    z-index: 9999;
-  }
-
-  .nav-links.is-open {
-    display: flex;
+    display: flex !important;
+    flex-direction: row;
+    align-items: center;
+    position: static;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    gap: 16px;
   }
 
   .nav-links li {
-    width: 100%;
+    width: auto;
   }
 
   .nav-links a,
   .nav-links .btn {
-    width: 100%;
-    text-align: left;
+    width: auto;
+    text-align: center;
   }
 }
-
