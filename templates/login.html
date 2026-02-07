@@ -1,30 +1,101 @@
 {% extends "base.html" %}
 
-{% block title %}Login{% endblock %}
+{% block title %}Login | Friends Shishu Bikash Academy{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+{% endblock %}
 
 {% block content %}
-<center>
-<h2>Login</h2>
-</center>
+<div class="login-shell">
 
-<form method="POST" class="login-form">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <label>Email</label><br>
-    <input type="email" name="email" required><br><br>
+    <div class="login-card">
 
-    <label>Password</label><br>
-    <div class="password-field">
-        <input id="loginPassword" type="password" name="password" required>
-        
+        <!-- LEFT PANEL -->
+        <div class="login-left">
+            <h2>Hello Admin!</h2>
+            <p>Log in to your account</p>
+
+            <form method="POST" autocomplete="on">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <label for="email">Email</label>
+                <input
+                    id="email"
+                    type="email"
+                    name="email"
+                    placeholder="Enter your email"
+                    required
+                >
+
+                <label for="loginPassword">Password</label>
+                <div class="password-wrapper">
+                    <input
+                        id="loginPassword"
+                        type="password"
+                        name="password"
+                        placeholder="Enter your password"
+                        required
+                    >
+                    <button
+                       type="button"
+                       class="password-toggle"
+                        onclick="togglePassword(event)"
+                        aria-label="Show password"
+                        >
+                        Show
+                    </button>
+
+                </div>
+
+                <button type="submit" class="login-submit">
+                    LOG IN
+                </button>
+            </form>
+        </div>
+
+        <!-- RIGHT PANEL -->
+        <div class="login-right">
+            <h1>Welcome Back!</h1>
+            <p>
+                Access study materials, notices,
+                announcements, and academic resources
+                from Friends Shishu Bikash Academy.
+            </p>
+        </div>
+
     </div>
-    <br><br>
 
-    <button type="submit">Login</button>
-</form>
+</div>
 
-{% if get_flashed_messages() %}
-    <p style="color:red;">
-        {{ get_flashed_messages()[0] }}
-    </p>
-{% endif %}
+<script>
+function togglePassword(e) {
+    e.preventDefault();
+
+    const input = document.getElementById("loginPassword");
+    const button = e.target;
+
+    if (!input) return;
+
+    if (input.type === "password") {
+        input.type = "text";
+
+        // 🔥 FORCE VISIBILITY
+        input.style.webkitTextSecurity = "none";
+        input.style.textSecurity = "none";
+
+        button.innerText = "Hide";
+    } else {
+        input.type = "password";
+
+        // 🔥 FORCE MASKING BACK
+        input.style.webkitTextSecurity = "disc";
+        input.style.textSecurity = "disc";
+
+        button.innerText = "Show";
+    }
+}
+</script>
+
+
 {% endblock %}
