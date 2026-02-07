@@ -123,11 +123,21 @@ document.addEventListener("keydown", function (e) {
 });
 
 /* ================= PASSWORD TOGGLE ================= */
-function togglePassword(inputId, btn) {
-    const input = document.getElementById(inputId);
-    if (!input) return;
-    const isPassword = input.type === "password";
-    input.type = isPassword ? "text" : "password";
-    if (btn) btn.textContent = isPassword ? "🙈" : "👁";
-}
+function togglePassword(e) {
+    e.preventDefault();
 
+    const input = document.getElementById("loginPassword");
+    const button = e.target;
+
+    if (!input) return;
+
+    if (input.type === "password") {
+        input.type = "text";
+        input.style.webkitTextSecurity = "none";
+        button.innerText = "Hide";
+    } else {
+        input.type = "password";
+        input.style.webkitTextSecurity = "disc";
+        button.innerText = "Show";
+    }
+}

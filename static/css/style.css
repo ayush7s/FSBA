@@ -11,6 +11,18 @@ body {
     color: #1f2933;
     line-height: 1.6;
 }
+html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+
+.site-header,
+.page-main,
+.site-footer {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
 
 a {
     color: inherit;
@@ -824,55 +836,28 @@ a {
     color: #0b6e3f;
 }
 
+/* Login card */
+/* ================= LOGIN (Modern 3D) ================= */
+
 /* ================= LOGIN ================= */
-.login-form {
-    max-width: 350px;
-    margin: 40px auto;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-}
 
-.login-form input {
-    width: 100%;
-    padding: 8px;
-}
 
-.login-form button {
-    width: 100%;
-    padding: 10px;
-    background: #086832;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
 
-.password-field {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
 
-.password-field input {
-    width: 100%;
-    padding-right: 46px;
-}
 
-.password-toggle {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 36px;
-    height: 36px;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
-    background: #ffffff;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
+/* ================= LOGIN SPLIT CARD ================= */
+
+
+
+/* MOBILE: HIDE RIGHT PANEL */
+@media (max-width: 768px) {
+    .login-card {
+        grid-template-columns: 1fr;
+    }
+
+    .login-right {
+        display: none;
+    }
 }
 
 /* ================= PAID MATERIALS ================= */
@@ -1332,4 +1317,99 @@ a {
     .contact-form {
         width: 100%;
     }
+}
+
+/* ================= MOBILE ADMIN NAV FIX ================= */
+@media (max-width: 768px) {
+
+  .navbar {
+    width: 100%;
+  }
+
+  .nav-links {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 6px;
+    background: #0b6e3f;
+    padding: 12px;
+    border-radius: 14px;
+    display: none; /* hidden until toggle */
+  }
+
+  .nav-links.is-open {
+    display: flex;
+  }
+
+  .nav-links li {
+    width: 100%;
+  }
+
+  .nav-links a,
+  .nav-links .btn {
+    width: 100%;
+    text-align: left;
+  }
+
+  /* Prevent horizontal overflow */
+  body {
+    overflow-x: hidden;
+  }
+}
+/* ================= DESKTOP SITE ON MOBILE FIX ================= */
+
+/* Force mobile layout when screen is physically small */
+@media (max-width: 1024px) {
+
+  /* Prevent horizontal overflow */
+  html, body {
+    overflow-x: hidden !important;
+  }
+
+  /* Header must not exceed screen */
+  .site-header,
+  .header-inner {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Navbar behaves like mobile even in desktop mode */
+  .nav-toggle {
+    display: inline-flex !important;
+  }
+
+  .navbar {
+    width: 100%;
+  }
+
+  .nav-links {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+
+    background: #0b6e3f;
+    padding: 12px;
+    border-radius: 0 0 16px 16px;
+
+    display: none;
+    z-index: 9999;
+  }
+
+  .nav-links.is-open {
+    display: flex;
+  }
+
+  .nav-links li {
+    width: 100%;
+  }
+
+  .nav-links a,
+  .nav-links .btn {
+    width: 100%;
+    text-align: left;
+  }
 }
