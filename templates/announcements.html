@@ -22,37 +22,51 @@
 
 <!-- ================= ANNOUNCEMENT LIST (VISIBLE TO ALL) ================= -->
 {% if announcements and announcements|length > 0 %}
-    {% for ann in announcements %}
-        <div class="notice-card" style="margin-bottom:20px;">
-            <h3>{{ ann.title }}</h3>
-            <p>{{ ann.content }}</p>
-
-            {% if ann.file_name %}
-                <!-- 🔽 FIXED: correct download route name -->
-                <a href="{{ url_for('download_announcement_file', filepath=ann.file_name) }}">
-                    📄 Download Attachment
-                </a>
-                <br>
-            {% endif %}
-
-            <small>
-                Posted on {{ ann.created_at.strftime('%d %b %Y') }}
-            </small>
-
-            <!-- ================= ADMIN-ONLY DELETE ================= -->
-            {% if session.get("role") == "admin" %}
-                <br>
-                <form method="POST" action="{{ url_for('delete_announcement', id=ann.id) }}" style="display:inline;">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" onclick="return confirm('Delete this announcement?')" style="color:red; background:none; border:none; padding:0; cursor:pointer;">
-                        Delete
-                    </button>
-                </form>
-            {% endif %}
-            <!-- ================= END ADMIN-ONLY DELETE ================= -->
-
-        </div>
-    {% endfor %}
+    <div class="announcements-table-wrapper">
+        <table class="announcements-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Content</th>
+                    <th>Posted</th>
+                    <th>Download</th>
+                    {% if session.get("role") == "admin" %}
+                        <th>Action</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for ann in announcements %}
+                <tr>
+                    <td class="announcement-title">{{ ann.title }}</td>
+                    <td class="announcement-content">{{ ann.content[:100] }}{% if ann.content|length > 100 %}...{% endif %}</td>
+                    <td class="announcement-date">{{ ann.created_at.strftime('%d %b %Y') }}</td>
+                    <td class="announcement-download">
+                        {% if ann.file_name %}
+                            <a href="{{ url_for('download_announcement_file', filepath=ann.file_name) }}" class="btn-download">
+                                ⬇️ Download
+                            </a>
+                        {% else %}
+                            <span class="no-file">—</span>
+                        {% endif %}
+                    </td>
+                    <!-- ================= ADMIN-ONLY DELETE ================= -->
+                    {% if session.get("role") == "admin" %}
+                        <td class="announcement-action">
+                            <form method="POST" action="{{ url_for('delete_announcement', id=ann.id) }}" style="display:inline;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" onclick="return confirm('Delete this announcement?')" class="btn-delete">
+                                    🗑️ Delete
+                                </button>
+                            </form>
+                        </td>
+                    {% endif %}
+                    <!-- ================= END ADMIN-ONLY DELETE ================= -->
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 {% else %}
     <p>No announcements available.</p>
 {% endif %}

@@ -189,7 +189,10 @@ def home():
             Announcement.created_at.desc()
         ).limit(1).all()
 
-    except Exception:
+    except Exception as e:
+        print(f"Error in home route: {type(e).__name__}: {e}")
+        import traceback
+        traceback.print_exc()
         notices = []
         announcements = []
 

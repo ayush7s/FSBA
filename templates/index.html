@@ -29,27 +29,6 @@
 </div>
 {% endif %}
 
-<section class="section" data-aos="fade-up">
-    <div class="section-header">
-        <h2>Teachers</h2>
-        <p>Experienced, caring teachers guiding every learner.</p>
-    </div>
-
-    <div class="faculty-grid">
-        {% for f in faculty_members %}
-        <article class="faculty-card" data-aos="zoom-in" data-aos-delay="{{ loop.index0 * 60 }}">
-            <div class="faculty-avatar">
-                <img src="{{ url_for('static', filepath='faculty/' + f.image) }}" alt="{{ f.name }}">
-            </div>
-            <div class="faculty-body">
-                <h3>{{ f.name }}</h3>
-                <p class="faculty-role">{{ f.designation }}</p>
-            </div>
-        </article>
-        {% endfor %}
-    </div>
-</section>
-
 <section class="section notices" data-aos="fade-up">
     <div class="section-header">
         <h2>Latest Notices</h2>
@@ -80,6 +59,28 @@
         <a href="{{ url_for('notices') }}" class="btn btn-outline">
             View all notices
         </a>
+    </div>
+</section>
+
+<!-- 3D Interactive Gallery Section -->
+<section class="section gallery-3d-section" data-aos="fade-up">
+    <div class="section-header">
+        <h2>School Highlights</h2>
+        <p>Explore our facilities and programs in interactive 3D.</p>
+    </div>
+    
+    <div class="gallery-3d-container">
+        <div class="gallery-3d-canvas-wrapper">
+            <canvas id="gallery-3d-canvas"></canvas>
+        </div>
+        
+        <div class="gallery-3d-info">
+            <div class="info-item" id="gallery-info">
+                <h3>Scroll to explore</h3>
+                <p>Use your mouse wheel or scroll to view 3D items</p>
+                <span class="info-category">Interactive</span>
+            </div>
+        </div>
     </div>
 </section>
 

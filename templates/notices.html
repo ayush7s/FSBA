@@ -26,36 +26,51 @@
 
 
     <!-- ================= DISPLAY NOTICES (VISIBLE TO ALL) ================= -->
-    {% for notice in notices %}
-    <div class="notice-card">
-        <h3>{{ notice.title }}</h3>
-        <p>{{ notice.content }}</p>
-
-        {% if notice.pdf_file %}
-            <p>
-                <a href="{{ url_for('download_notice_pdf', filepath=notice.pdf_file) }}">
-                    📄 Download PDF
-                </a>
-            </p>
-        {% endif %}
-
-        <small>Posted on {{ notice.created_at.strftime('%d %b %Y') }}</small>
-
-        <!-- ================= ADMIN-ONLY DELETE ================= -->
-        <!-- 🔽 ADDED: delete button only for admin -->
-        {% if session.get("role") == "admin" %}
-            <br>
-            <form method="POST" action="{{ url_for('delete_notice', id=notice.id) }}" style="display:inline;">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" onclick="return confirm('Delete this notice?')" style="color:red; background:none; border:none; padding:0; cursor:pointer;">
-                    Delete
-                </button>
-            </form>
-        {% endif %}
-        <!-- ================= END ADMIN-ONLY DELETE ================= -->
-
+    <div class="notices-table-wrapper">
+        <table class="notices-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Content</th>
+                    <th>Posted</th>
+                    <th>Download</th>
+                    {% if session.get("role") == "admin" %}
+                        <th>Action</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for notice in notices %}
+                <tr>
+                    <td class="notice-title">{{ notice.title }}</td>
+                    <td class="notice-content">{{ notice.content[:100] }}{% if notice.content|length > 100 %}...{% endif %}</td>
+                    <td class="notice-date">{{ notice.created_at.strftime('%d %b %Y') }}</td>
+                    <td class="notice-download">
+                        {% if notice.pdf_file %}
+                            <a href="{{ url_for('download_notice_pdf', filepath=notice.pdf_file) }}" class="btn-download">
+                                ⬇️ Download
+                            </a>
+                        {% else %}
+                            <span class="no-file">—</span>
+                        {% endif %}
+                    </td>
+                    <!-- ================= ADMIN-ONLY DELETE ================= -->
+                    {% if session.get("role") == "admin" %}
+                        <td class="notice-action">
+                            <form method="POST" action="{{ url_for('delete_notice', id=notice.id) }}" style="display:inline;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" onclick="return confirm('Delete this notice?')" class="btn-delete">
+                                    🗑️ Delete
+                                </button>
+                            </form>
+                        </td>
+                    {% endif %}
+                    <!-- ================= END ADMIN-ONLY DELETE ================= -->
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-    {% endfor %}
     <!-- ================= END DISPLAY ================= -->
 
 </section>
