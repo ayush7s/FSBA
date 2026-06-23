@@ -22,36 +22,29 @@
 
 <body>
 
-<!-- ================= HEADER ================= -->
+<!-- ================= MODERN SITE HEADER ================= -->
 <header class="site-header">
     <div class="header-inner">
 
         <div class="logo">
-            <img
-                src="{{ url_for('static', filename='images/logo.png') }}"
-                alt="School Logo"
-                class="logo-mark">
+            <div class="logo-icon-wrapper">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="School Logo" class="logo-mark">
+            </div>
             <div class="logo-text">
                 <h1>FRIENDS SHISHU BIKASH ACADEMY</h1>
+                <span class="logo-sub">Est. Excellence</span>
             </div>
         </div>
 
         <button class="nav-toggle" type="button" aria-label="Toggle navigation" onclick="toggleMobileNav()">
-            <span></span>
-            <span></span>
-            <span></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
         </button>
 
         <nav class="navbar" aria-label="Primary navigation">
             <ul class="nav-links" id="primaryNav">
-                <li><a class="nav-link" href="/">Home</a></li>
-
-                {% if session.get("role") == "admin" %}
-                    <li><a class="nav-link" href="{{ url_for('admin_faculty') }}">Manage Teachers</a></li>
-                    <li><a class="nav-link" href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a></li>
-                    <li><a class="nav-link" href="{{ url_for('admin_paid_materials') }}">Manage Paid Materials</a></li>
-                {% endif %}
-
+                <li><a class="nav-link active" href="/">Home</a></li>
                 <li><a class="nav-link" href="{{ url_for('faculty_public') }}">Teachers</a></li>
                 <li><a class="nav-link" href="/notices">Notices</a></li>
                 <li><a class="nav-link" href="/announcements">Announcements</a></li>
@@ -59,18 +52,23 @@
                 <li><a class="nav-link" href="{{ url_for('paid_materials') }}">Paid Materials</a></li>
                 <li><a class="nav-link" href="/contact">Contact</a></li>
 
-                {% if session.get("role") %}
-                    <li class="nav-user">
-                        <span class="nav-user-pill">Logged in as {{ session.get("role") }}</span>
-                    </li>
-                    <li>
-                        <a class="btn btn-outline-light btn-xs" href="{{ url_for('logout') }}">Logout</a>
-                    </li>
-                {% else %}
-                    <li>
-                        <a class="btn btn-primary btn-xs" href="{{ url_for('login') }}">Login</a>
+                {% if session.get("role") == "admin" %}
+                    <li class="nav-divider"></li>
+                    <li class="admin-group">
+                        <a class="nav-link admin-link" href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+                        <a class="nav-link admin-link" href="{{ url_for('admin_faculty') }}">Teachers</a>
+                        <a class="nav-link admin-link" href="{{ url_for('admin_paid_materials') }}">Materials</a>
                     </li>
                 {% endif %}
+
+                <li class="auth-wrapper">
+                    {% if session.get("role") %}
+                        <span class="nav-user-pill">Admin Mode</span>
+                        <a class="btn-nav-auth logout" href="{{ url_for('logout') }}">Logout</a>
+                    {% else %}
+                        <a class="btn-nav-auth login" href="{{ url_for('login') }}">Admin Login</a>
+                    {% endif %}
+                </li>
             </ul>
         </nav>
 
