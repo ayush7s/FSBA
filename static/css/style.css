@@ -2085,3 +2085,199 @@ form button:hover {
         display: none;
     }
 }
+
+/* ================= MODERN REDESIGN ADDITIONS ================= */
+
+/* Enhanced Hero Section with high-contrast structural overlay */
+.hero-modern {
+    position: relative;
+    padding: 80px 24px;
+    border-radius: 24px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: clamp(380px, 55vh, 560px);
+    background-image: url("/static/images/hh.jpeg");
+    background-size: cover;
+    background-position: center;
+    box-shadow: 0 20px 40px rgba(11, 110, 63, 0.12);
+}
+
+/* Linear color overlay gradient to make sure white typography is readable */
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(11, 110, 63, 0.85) 0%, rgba(4, 71, 19, 0.9) 100%);
+    z-index: 1;
+}
+
+/* Elevated container block above the background filters */
+.hero-content-wrapper {
+    position: relative;
+    z-index: 2;
+    max-width: 780px;
+    padding: 0 16px;
+}
+
+.hero-badge-top {
+    display: inline-block;
+    padding: 6px 16px;
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    letter-spacing: 0.02em;
+    backdrop-filter: blur(4px);
+}
+
+.hero-content-wrapper h2 {
+    color: #ffffff;
+    font-size: clamp(28px, 4.5vw, 44px);
+    font-weight: 800;
+    line-height: 1.25;
+    margin-bottom: 14px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+}
+
+.hero-content-wrapper p {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: clamp(16px, 2vw, 20px);
+    font-weight: 400;
+    margin-bottom: 32px;
+}
+
+/* Action Container Grid */
+.hero-actions-container {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Refactored High-Fidelity Buttons */
+.btn-hero-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    color: #0b6e3f;
+    font-weight: 600;
+    font-size: 15px;
+    padding: 14px 28px;
+    border-radius: 12px;
+    text-decoration: none;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+}
+
+.btn-hero-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 26px rgba(0, 0, 0, 0.15);
+    background: #fdfdfd;
+}
+
+.btn-hero-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 15px;
+    padding: 13px 28px;
+    border-radius: 12px;
+    text-decoration: none;
+    border: 1.5px solid rgba(255, 255, 255, 0.4);
+    transition: background 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    backdrop-filter: blur(4px);
+}
+
+.btn-hero-secondary:hover {
+    background: rgba(255, 255, 255, 0.22);
+    transform: translateY(-2px);
+}
+
+/* Optimized Notice Cards Layout */
+.notice-list {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: 1fr;
+}
+
+.notice-card {
+    display: flex;
+    background: #ffffff;
+    border-radius: 16px;
+    overflow: hidden;
+    border-left: none; /* Removed old layout style */
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.notice-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(11, 110, 63, 0.08);
+}
+
+.notice-card-accent {
+    width: 6px;
+    background: linear-gradient(to bottom, #0b6e3f, #43a047);
+    flex-shrink: 0;
+}
+
+.notice-card-body {
+    padding: 20px 24px;
+    flex-grow: 1;
+}
+
+.notice-card h3 a {
+    font-size: 17px;
+    font-weight: 600;
+    color: #1f2933;
+    transition: color 0.2s ease;
+}
+
+.notice-card h3 a:hover {
+    color: #0b6e3f;
+    text-decoration: none;
+}
+
+.notice-meta {
+    margin-top: 6px;
+    font-size: 13px;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+}
+
+.no-notices-placeholder {
+    padding: 32px;
+    text-align: center;
+    background: #ffffff;
+    border-radius: 16px;
+    color: #64748b;
+    border: 1px dashed #cbd5e1;
+}
+
+/* Responsive Overrides */
+@media (max-width: 768px) {
+    .hero-modern {
+        padding: 56px 16px;
+        min-height: auto;
+    }
+    
+    .hero-actions-container {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .btn-hero-primary, .btn-hero-secondary {
+        width: 100%;
+    }
+}
