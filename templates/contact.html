@@ -4,31 +4,92 @@
 
 {% block content %}
 
-<section class="contact">
-    <h2>Contact Us</h2>
-    <p>Feel free to reach out to us.</p>
+<section class="contact-page-wrapper" data-aos="fade-up">
+    <!-- Academics & Quality Showcase Header -->
+    <div class="contact-hero-header">
+        <h2>Connect With Us</h2>
+        <p>Partner with an institution dedicated to academic brilliance, holistic growth, and individual guidance.</p>
+    </div>
 
-    <div class="contact-container">
+    <!-- Institutional Quality Grid Component -->
+    <div class="quality-grid">
+        <div class="quality-card">
+            <div class="quality-icon">🎓</div>
+            <h3>Elite Faculty</h3>
+            <p>Our experienced teachers utilize structured pedagogical methods to make complex conceptual principles accessible and simple to learn.</p>
+        </div>
+        <div class="quality-card">
+            <div class="quality-icon">🔬</div>
+            <h3>Modern Infrastructure</h3>
+            <p>From practical, real-world analytical examples to immersive resources, we create a thriving study environment built for tomorrow.</p>
+        </div>
+        <div class="quality-card">
+            <div class="quality-icon">🌟</div>
+            <h3>Holistic Development</h3>
+            <p>We balance rigid academic standards with personalized mentorship, ensuring every student develops confidence and leadership potential.</p>
+        </div>
+    </div>
 
-        <div class="contact-info">
-            <h3>Address</h3>
-            <p>KANSHRA, SUREKALNA, JAMALPUR, EAST BURDWAN, WEST BENGAL, 713408</p>
+    <!-- Interactive Interactive Split Forms Layout -->
+    <div class="contact-split-container">
 
-            <h3>Email</h3>
-            <p>officialfsba@gmail.com</p>
+        <!-- Physical Details Card Block -->
+        <div class="contact-info-card">
+            <div class="info-card-header">
+                <h3>Our Campus</h3>
+                <p>Drop by or reach out through our official communication channels.</p>
+            </div>
+            
+            <div class="info-item-group">
+                <div class="info-sub-item">
+                    <span class="info-sub-icon">📍</span>
+                    <div>
+                        <h4>Address</h4>
+                        <p>KANSHRA, SUREKALNA, JAMALPUR, EAST BURDWAN, WEST BENGAL, 713408</p>
+                    </div>
+                </div>
 
-            <h3>Phone</h3>
-            <p>+91 87685 17848/+91 9732482450</p>
+                <div class="info-sub-item">
+                    <span class="info-sub-icon">✉️</span>
+                    <div>
+                        <h4>Email</h4>
+                        <p><a href="mailto:officialfsba@gmail.com">officialfsba@gmail.com</a></p>
+                    </div>
+                </div>
 
+                <div class="info-sub-item">
+                    <span class="info-sub-icon">📞</span>
+                    <div>
+                        <h4>Phone</h4>
+                        <p>+91 87685 17848<br>+91 97324 82450</p>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="contact-form">
-            <h3>Send Message</h3>
-            <form>
-                <input type="text" placeholder="Your Name" required>
-                <input type="email" placeholder="Your Email" required>
-                <textarea placeholder="Your Message" required></textarea>
-                <button type="submit">Submit</button>
+        <!-- Communications Inputs Section -->
+        <div class="contact-form-card">
+            <h3>Send Us a Message</h3>
+            <form class="modern-form">
+                <div class="form-input-wrapper">
+                    <input type="text" id="userName" placeholder=" " required>
+                    <label for="userName">Your Name</label>
+                </div>
+                
+                <div class="form-input-wrapper">
+                    <input type="email" id="userEmail" placeholder=" " required>
+                    <label for="userEmail">Your Email</label>
+                </div>
+                
+                <div class="form-input-wrapper">
+                    <textarea id="userMessage" placeholder=" " required></textarea>
+                    <label for="userMessage">Your Message</label>
+                </div>
+                
+                <button type="submit" class="btn-form-submit">
+                    <span>Send Message</span>
+                    <span class="btn-arrow">→</span>
+                </button>
             </form>
         </div>
 
