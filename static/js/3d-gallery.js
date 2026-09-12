@@ -17,18 +17,25 @@ class Gallery3D {
         this.isScrolling = false;
         this.scrollTimeout = null;
 
+        // Custom drag/swing physics interaction state
+        this.isDragging = false;
+        this.dragStartX = 0;
+        this.swingOffset = 0; // Current swing rotation
+        this.targetSwing = 0; // Target swing rotation based on drag
+
         // Gallery items configuration
         // School facilities and highlights
         this.galleryItems = [
-            {   title: "Student Courtyard Assembly",
+            {
+                title: "Student Courtyard Assembly",
                 description: "Our students gathered in the school courtyard during sports day. A vibrant space where every child participates in building school traditions and community spirit.",
-                
+
                 category: "Campus",
                 image: "/static/images/img1.jpg",
                 color: 0x1b5e20
             },
             {
-              title: "Teachers' Day Assembly",
+                title: "Teachers' Day Assembly",
                 description: "A special assembly held in the school courtyard to honor our teachers. This event celebrates the dedication of our educators and the strong bond they share with their students.",
                 category: "Events",
                 image: "/static/images/img2.jpg",
@@ -125,7 +132,7 @@ class Gallery3D {
             const pointLight = new THREE.PointLight(0x667eea, 0.5);
             pointLight.position.set(-5, 5, 5);
             this.scene.add(pointLight);
-            
+
             return true;
         } catch (error) {
             console.error('Error setting up 3D scene:', error);
@@ -144,7 +151,7 @@ class Gallery3D {
 
         this.galleryItems.forEach((item, index) => {
             const geometry = new THREE.BoxGeometry(3, 3.8, 0.2);
-            
+
             let material;
             try {
                 // Try to load the image as a texture
@@ -158,7 +165,7 @@ class Gallery3D {
                         console.error('✗ Failed to load texture: ' + item.image, err);
                     }
                 );
-                
+
                 material = new THREE.MeshPhongMaterial({
                     map: texture,
                     emissive: 0x333333,
@@ -176,7 +183,7 @@ class Gallery3D {
             }
 
             const mesh = new THREE.Mesh(geometry, material);
-            
+
             // Position based on index (show 3 cards at a time)
             const posIndex = (index - this.currentIndex + this.galleryItems.length) % this.galleryItems.length;
             if (posIndex < 3) {
@@ -188,7 +195,7 @@ class Gallery3D {
             mesh.castShadow = true;
             mesh.receiveShadow = true;
             mesh.rotation.y = Math.random() * 0.3 - 0.15;
-            
+
             mesh.userData = {
                 item: item,
                 index: index,
@@ -210,7 +217,7 @@ class Gallery3D {
 
         this.cards.forEach((card, index) => {
             const posIndex = (index - this.currentIndex + this.galleryItems.length) % this.galleryItems.length;
-            
+
             if (posIndex < 3) {
                 card.userData.targetPosition = new THREE.Vector3(
                     positions[posIndex].x,
@@ -257,16 +264,16 @@ class Gallery3D {
         // Mouse wheel scrolling
         this.canvas.addEventListener('wheel', (e) => this.handleScroll(e), false);
 
-        // Touch support
+        // Touch support for scrolling
         let touchStartY = 0;
         this.canvas.addEventListener('touchstart', (e) => {
             touchStartY = e.touches[0].clientY;
-        });
+        }, { passive: true });
 
         this.canvas.addEventListener('touchmove', (e) => {
             const touchEndY = e.touches[0].clientY;
             const diff = touchStartY - touchEndY;
-            
+
             if (Math.abs(diff) > 50) {
                 e.preventDefault();
                 this.currentIndex = (this.currentIndex + (diff > 0 ? 1 : -1) + this.galleryItems.length) % this.galleryItems.length;
@@ -286,8 +293,47 @@ class Gallery3D {
             }
         });
 
+        // --- NEW: Drag Physics Micro-interaction (Charmling style) ---
+        // Mouse Drag interaction
+        this.canvas.addEventListener('mousedown', (e) => this.onDragStart(e.clientX));
+        window.addEventListener('mousemove', (e) => this.onDragMove(e.clientX));
+        window.addEventListener('mouseup', () => this.onDragEnd());
+
+        // Touch Drag interaction
+        this.canvas.addEventListener('touchstart', (e) => this.onDragStart(e.touches[0].clientX), { passive: true });
+        window.addEventListener('touchmove', (e) => this.onDragMove(e.touches[0].clientX), { passive: false });
+        window.addEventListener('touchend', () => this.onDragEnd());
+
         // Handle window resize
         window.addEventListener('resize', () => this.onWindowResize());
+    }
+
+    onDragStart(clientX) {
+        this.isDragging = true;
+        this.dragStartX = clientX;
+        this.canvas.style.cursor = 'grabbing';
+    }
+
+    onDragMove(clientX) {
+        if (!this.isDragging) return;
+        const deltaX = clientX - this.dragStartX;
+
+        // Map pixel drag to a subtle rotation target (swing)
+        this.targetSwing = deltaX * 0.003;
+
+        // If dragged significantly, swap cards (like a carousel swipe)
+        if (Math.abs(deltaX) > 150) {
+            this.currentIndex = (this.currentIndex + (deltaX > 0 ? -1 : 1) + this.galleryItems.length) % this.galleryItems.length;
+            this.updateCardPositions();
+            this.dragStartX = clientX; // Reset start to prevent multiple swaps
+            this.targetSwing = 0;
+        }
+    }
+
+    onDragEnd() {
+        this.isDragging = false;
+        this.targetSwing = 0; // Spring back to center
+        this.canvas.style.cursor = 'grab';
     }
 
     handleScroll(event) {
@@ -324,7 +370,7 @@ class Gallery3D {
             // Cube-like rotation animation (only Y-axis for card flip effect)
             const cardIndex = this.cards.indexOf(card);
             const posIndex = (cardIndex - this.currentIndex + this.galleryItems.length) % this.galleryItems.length;
-            
+
             // Calculate target rotation for cube effect
             let targetRotY = 0;
             if (posIndex === 0) {
@@ -337,9 +383,18 @@ class Gallery3D {
 
             // Smooth rotation transition for cube effect
             card.rotation.y += (targetRotY - card.rotation.y) * 0.08;
-            
-            // Remove floating z-rotation
-            card.rotation.z = 0;
+
+            // Apply physics drag swing (adds to Z and Y rotation for a dangling feeling)
+            if (posIndex === 1) {
+                // Only the center card gets the main interaction charm swing
+                this.swingOffset += (this.targetSwing - this.swingOffset) * 0.15; // Spring damping
+                card.rotation.z = this.swingOffset;
+                card.rotation.y += this.swingOffset * 1.5; // Extra 3D flair
+                card.position.x += this.swingOffset * 2; // Slight physical shift
+            } else {
+                // Remove floating z-rotation for others
+                card.rotation.z = 0;
+            }
 
             // Scale animation
             const targetScale = card.userData.targetScale || 0.9;
@@ -399,7 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.warn('Three.js failed to load. 3D Gallery will not be available.');
         }
     };
-    
+
     // Start initialization
     initializeGallery();
 });
