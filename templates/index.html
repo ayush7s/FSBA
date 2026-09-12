@@ -1,445 +1,94 @@
 {% extends "base.html" %}
+
 {% block title %}Home{% endblock %}
 
-{% block extra_css %}
-<style>
-    /* Hide the main base.html header on homepage from the static flow */
-    .site-header {
-        position: fixed !important;
-        top: -120px !important;
-        /* hidden initially */
-        left: 50% !important;
-        transform: translateX(-50%) !important;
-        width: auto !important;
-        max-width: 90vw !important;
-        border-radius: 999px !important;
-        background: rgba(15, 23, 42, 0.85) !important;
-        backdrop-filter: blur(12px) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        padding: 8px 24px !important;
-        transition: top 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s !important;
-        z-index: 9999 !important;
-    }
-
-    /* Show minimal nav pill after scroll */
-    body.scrolled-past-hero .site-header {
-        top: 20px !important;
-    }
-
-    /* Break out of .page-container constraints for full sections */
-    .page-container {
-        max-width: 100% !important;
-        padding: 0 !important;
-    }
-
-    .home-story-wrapper {
-        width: 100vw;
-        margin-left: calc(50% - 50vw);
-        /* Break out trick */
-        overflow-x: hidden;
-    }
-
-    /* Full Viewport Sections */
-    .story-section {
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        padding: 80px 24px;
-        position: relative;
-    }
-
-    /* Typography for Story */
-    .story-header {
-        text-align: center;
-        max-width: 800px;
-        margin-bottom: 64px;
-    }
-
-    .story-header h2 {
-        font-size: clamp(40px, 6vw, 64px);
-        font-weight: 800;
-        line-height: 1.1;
-        color: #0f172a;
-        letter-spacing: -0.02em;
-        margin-bottom: 24px;
-    }
-
-    .story-header p {
-        font-size: clamp(18px, 2vw, 24px);
-        color: #475569;
-        line-height: 1.6;
-    }
-
-    /* Dark Theme Hero */
-    .hero-dark-theme {
-        background-color: #020617;
-        /* Deep base */
-        color: #ffffff;
-        align-items: center;
-        text-align: center;
-    }
-
-    .hero-bg-deep {
-        position: absolute;
-        inset: 0;
-        background: radial-gradient(circle at center, rgba(27, 94, 32, 0.4) 0%, #020617 70%);
-        z-index: 1;
-    }
-
-    .hero-content-wrapper {
-        z-index: 2;
-        max-width: 900px;
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .hero-content-wrapper h2 {
-        color: #ffffff;
-        font-size: clamp(40px, 8vw, 84px);
-        font-weight: 900;
-        line-height: 1.05;
-        margin-bottom: 24px;
-        letter-spacing: -0.03em;
-    }
-
-    .hero-content-wrapper p {
-        color: #94a3b8;
-        font-size: clamp(20px, 3vw, 28px);
-        margin-bottom: 56px;
-        max-width: 700px;
-    }
-
-    /* CTA Card Pattern */
-    .cta-card-actions {
-        display: flex;
-        gap: 24px;
-        flex-wrap: wrap;
-        justify-content: center;
-        width: 100%;
-    }
-
-    .cta-card-btn {
-        display: flex !important;
-        flex-direction: column;
-        align-items: flex-start !important;
-        padding: 24px 32px !important;
-        border-radius: 20px !important;
-        text-align: left;
-        min-width: 280px;
-    }
-
-    .cta-card-btn .cta-title {
-        font-size: 20px;
-        font-weight: 700;
-        margin-bottom: 8px;
-    }
-
-    .cta-card-btn .cta-desc {
-        font-size: 14px;
-        font-weight: 400;
-        opacity: 0.85;
-    }
-
-    /* Stats Section */
-    .stats-grid {
-        display: flex;
-        gap: 64px;
-        flex-wrap: wrap;
-        justify-content: center;
-        width: 100%;
-        max-width: 1200px;
-    }
-
-    .stat-box {
-        text-align: center;
-    }
-
-    .stat-box .stat-number-wrap {
-        font-size: clamp(64px, 8vw, 96px);
-        font-weight: 900;
-        color: #1b5e20;
-        line-height: 1;
-        margin-bottom: 12px;
-    }
-
-    .stat-box .stat-label {
-        font-size: 18px;
-        font-weight: 600;
-        color: #64748b;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-    }
-
-    /* Notices & Cards Layout */
-    .story-notices-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-        gap: 32px;
-        width: 100%;
-        max-width: 1200px;
-    }
-
-    /* FAQ Accordion */
-    .faq-container {
-        width: 100%;
-        max-width: 800px;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-    }
-
-    .faq-item {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 16px;
-        overflow: hidden;
-        transition: box-shadow 0.3s ease;
-    }
-
-    .faq-item:hover {
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-    }
-
-    .faq-summary {
-        padding: 24px 32px;
-        font-size: 18px;
-        font-weight: 600;
-        cursor: pointer;
-        list-style: none;
-        /* Hide default arrow */
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        color: #1e293b;
-    }
-
-    .faq-summary::-webkit-details-marker {
-        display: none;
-    }
-
-    .faq-summary::after {
-        content: '+';
-        font-size: 24px;
-        color: #1b5e20;
-        transition: transform 0.3s ease;
-    }
-
-    .faq-item[open] .faq-summary::after {
-        transform: rotate(45deg);
-    }
-
-    .faq-content {
-        padding: 0 32px 24px;
-        color: #475569;
-        font-size: 16px;
-        line-height: 1.6;
-    }
-
-    /* 3D Dark section variant */
-    .bg-slate {
-        background: #f8fafc;
-    }
-
-    @media (max-width: 768px) {
-        .site-header {
-            max-width: 100% !important;
-            border-radius: 0 !important;
-        }
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="home-story-wrapper">
 
-    <!-- 1. Deep Dark Hero -->
-    <section class="story-section hero-dark-theme" id="hero-section">
-        <div class="hero-bg-deep"></div>
-        <div class="hero-content-wrapper" data-aos="fade-up">
-            <div class="hero-badge-top"
-                style="background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3);">
-                ✨ Education Redefined
-            </div>
-            <h2>Friends Shishu Bikash Academy</h2>
-            <p>Welcome to shaping the future. Our dynamic environment empowers students to learn today so they can lead
-                tomorrow with absolute confidence.</p>
+<section class="hero hero-modern" data-aos="fade-up">
+    <div class="hero-overlay"></div>
+    <div class="hero-content-wrapper">
+        <div class="hero-badge-top">✨ Excellence in Education</div>
+        <h2>Welcome to Friends Shishu Bikash Academy</h2>
+        <p>Learning today, leading tomorrow.</p>
 
-            <div class="cta-card-actions">
-                <a href="{{ url_for('materials') }}" class="btn-hero-primary cta-card-btn">
-                    <span class="cta-title">Free Study Materials 📚</span>
-                    <span class="cta-desc">Dive into our open library of educational resources.</span>
-                </a>
-                <a href="{{ url_for('paid_materials') }}" class="btn-hero-secondary cta-card-btn"
-                    style="background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.15);">
-                    <span class="cta-title">Premium Access 🎓</span>
-                    <span class="cta-desc">Unlock advanced study guides and video courses.</span>
-                </a>
-            </div>
+        <div class="hero-actions-container">
+            <a href="{{ url_for('materials') }}" class="btn btn-hero-primary">
+                Free Study Materials
+            </a>
+            <a href="{{ url_for('paid_materials') }}" class="btn btn-hero-secondary">
+                Paid Materials
+            </a>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- 2. Animated Stats -->
-    <section class="story-section bg-slate">
-        <div class="story-header" data-aos="fade-up">
-            <h2>Our Impact by the Numbers</h2>
-            <p>Consistent excellence over the years.</p>
-        </div>
-        <div class="stats-grid" data-aos="fade-up">
-            <div class="stat-box">
-                <div class="stat-number-wrap"><span class="stat-number" data-target="15">0</span></div>
-                <div class="stat-label">Years Strong</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-number-wrap"><span class="stat-number" data-target="2500">0</span>+</div>
-                <div class="stat-label">Students Guided</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-number-wrap"><span class="stat-number" data-target="150">0</span></div>
-                <div class="stat-label">Notices Published</div>
-            </div>
-        </div>
-    </section>
-
-    <!-- 3. Notices Story -->
-    <section class="story-section">
-        <div class="story-header" data-aos="fade-up">
-            <h2 style="color: #1b5e20;">Latest Updates</h2>
-            <p>Stay informed with the most critical school announcements and notices instantly.</p>
-        </div>
-
-        <div class="story-notices-grid">
-            {% if notices and notices|length > 0 %}
-            {% for notice in notices %}
-            <article class="notice-card" data-aos="fade-up">
-                <div class="notice-card-accent"></div>
-                <div class="notice-card-body">
-                    <h3><a href="{{ url_for('notices') }}">{{ notice.title }}</a></h3>
-                    <p class="notice-meta">Posted on {{ notice.created_at.strftime('%d %b %Y') }}</p>
-                </div>
-            </article>
-            {% endfor %}
-            {% else %}
-            <p class="no-notices-placeholder" style="grid-column: 1 / -1;">No notices available right now.</p>
-            {% endif %}
-        </div>
-
-        <div style="margin-top: 48px;" data-aos="fade-up">
-            <a href="{{ url_for('notices') }}" class="btn btn-outline"
-                style="padding: 16px 32px; font-size: 16px;">Browse All Notices →</a>
-        </div>
-    </section>
-
-    <!-- 4. Interactive 3D Physics Section -->
-    <section class="story-section bg-slate gallery-3d-section">
-        <div class="story-header" data-aos="fade-up" style="margin-bottom: 32px; z-index: 10;">
-            <h2>Interactive Campus</h2>
-            <p>Drag, throw, and interact with our school memory cards.</p>
-        </div>
-
-        <div class="gallery-3d-container" style="width: 100vw; height: 60vh; position: relative;">
-            <div class="gallery-3d-canvas-wrapper" style="width: 100%; height: 100%;">
-                <canvas id="gallery-3d-canvas"></canvas>
-            </div>
-            <div class="gallery-3d-info" style="pointer-events: none; opacity: 0.85;">
-                <div class="info-item" id="gallery-info">
-                    <h3>Drag cards</h3>
-                    <span class="info-category">Physics Interaction</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- 5. FAQ / Contact Accordion Section -->
-    <section class="story-section">
-        <div class="story-header" data-aos="fade-up">
-            <h2>Frequently Asked Questions</h2>
-            <p>Find quick answers, or reach out if you need more help.</p>
-        </div>
-
-        <div class="faq-container" data-aos="fade-up">
-            <details class="faq-item">
-                <summary class="faq-summary">How do I access free study materials?</summary>
-                <div class="faq-content">All free materials can be found in the Study Materials section. Simply click on
-                    the title and you can download the attached PDF or view the resource directly on the site.</div>
-            </details>
-            <details class="faq-item">
-                <summary class="faq-summary">How does the paid premium material work?</summary>
-                <div class="faq-content">For premium content, you pay manually by using our provided UPI scanner. After
-                    you complete the transaction, the file will be accessible. Our system automatically processes your
-                    registration safely.</div>
-            </details>
-            <details class="faq-item">
-                <summary class="faq-summary">Who do I contact for admission inquiries?</summary>
-                <div class="faq-content">Please use our Contact page to send a direct message, or email us at the
-                    address provided in our footer. Admissions are reviewed thoroughly on an annual basis!</div>
-            </details>
-            <details class="faq-item">
-                <summary class="faq-summary">Where are you located?</summary>
-                <div class="faq-content">Friends Shishu Bikash Academy is centrally located and serves the community
-                    proudly. Contact our administration office directly to set up an in-person meeting.</div>
-            </details>
-        </div>
-
-        <div style="margin-top: 64px;" data-aos="fade-up">
-            <a href="/contact" class="btn btn-primary"
-                style="padding: 16px 40px; font-size: 18px; border-radius: 999px; box-shadow: 0 10px 30px rgba(11, 110, 63, 0.3);">Contact
-                Us</a>
-        </div>
-    </section>
+{% if announcements %}
+<div class="announcement-badge-wrapper" data-aos="fade-up">
+    <div class="announcement-badge">
+        <span class="badge-label">ANNOUNCEMENT</span>
+        <span class="badge-text">
+            <a href="{{ url_for('announcements') }}">
+                {{ announcements[0].title }}
+            </a>
+        </span>
+    </div>
 </div>
+{% endif %}
 
-<!-- Extra JS strictly for the visual UI components on this page (Stats counter & Navbar observer) -->
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        // Note: No backend logic touched. Only pure visual interactions added.
+<section class="section notices" data-aos="fade-up">
+    <div class="section-header">
+        <h2>Latest Notices</h2>
+        <p>Stay updated with important school information.</p>
+    </div>
 
-        // 1. Observer for Sticky Nav Pill
-        const heroSection = document.getElementById('hero-section');
-        if (heroSection && IntersectionObserver) {
-            const observer = new IntersectionObserver(entries => {
-                entries.forEach(entry => {
-                    // If hero is fully out of view, show pill
-                    if (!entry.isIntersecting) {
-                        document.body.classList.add('scrolled-past-hero');
-                    } else {
-                        document.body.classList.remove('scrolled-past-hero');
-                    }
-                });
-            }, { threshold: 0.1 });
-            observer.observe(heroSection);
-        }
+    {% if notices and notices|length > 0 %}
+        <div class="notice-list">
+            {% for notice in notices %}
+                <article class="notice-card" data-aos="fade-up">
+                    <div class="notice-card-accent"></div>
+                    <div class="notice-card-body">
+                        <h3>
+                            <a href="{{ url_for('notices') }}">
+                                {{ notice.title }}
+                            </a>
+                        </h3>
+                        <p class="notice-meta">
+                            Posted on {{ notice.created_at.strftime('%d %b %Y') }}
+                        </p>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="no-notices-placeholder">No notices available at the moment.</p>
+    {% endif %}
 
-        // 2. Observer for Stats Count-Up animation
-        const stats = document.querySelectorAll('.stat-number');
-        if (stats.length > 0 && IntersectionObserver) {
-            const statObserver = new IntersectionObserver(entries => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const el = entry.target;
-                        const target = parseInt(el.getAttribute('data-target'));
-                        let current = 0;
-                        const increment = target / 50; // speed
+    <div class="section-footer">
+        <a href="{{ url_for('notices') }}" class="btn btn-outline">
+            View all notices
+        </a>
+    </div>
+</section>
 
-                        const timer = setInterval(() => {
-                            current += increment;
-                            if (current >= target) {
-                                el.innerText = target;
-                                clearInterval(timer);
-                            } else {
-                                el.innerText = Math.ceil(current);
-                            }
-                        }, 25);
-                        statObserver.unobserve(el);
-                    }
-                });
-            }, { threshold: 0.5 });
+<section class="section gallery-3d-section" data-aos="fade-up">
+    <div class="section-header">
+        <h2>School Highlights</h2>
+        <p>Explore our facilities and programs in interactive 3D.</p>
+    </div>
+    
+    <div class="gallery-3d-container">
+        <div class="gallery-3d-canvas-wrapper">
+            <canvas id="gallery-3d-canvas"></canvas>
+        </div>
+        
+        <div class="gallery-3d-info">
+            <div class="info-item" id="gallery-info">
+                <h3>Scroll to explore</h3>
+                <p>Use your mouse wheel or scroll to view 3D items</p>
+                <span class="info-category">Interactive</span>
+            </div>
+        </div>
+    </div>
+</section>
 
-            stats.forEach(stat => statObserver.observe(stat));
-        }
-    });
-</script>
 {% endblock %}
